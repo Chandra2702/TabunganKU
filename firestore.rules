@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Siswa validation
+    function isValidSiswa(data) {
+      return data.keys().hasAll(['id', 'nisn', 'nama', 'kelas', 'tanggalDibuat'])
+        && data.keys().size() == 5
+        && data.id is string && data.id.size() <= 128
+        && data.nisn is string && data.nisn.size() <= 64
+        && data.nama is string && data.nama.size() <= 200
+        && data.kelas is string && data.kelas.size() <= 64
+        && data.tanggalDibuat is string && data.tanggalDibuat.size() <= 64;
+    }
+
+    // Transaksi validation
+    function isValidTransaksi(data) {
+      return data.keys().hasAll(['id', 'siswaId', 'tipe', 'jumlah', 'keterangan', 'tanggal', 'tanggalDibuat'])
+        && data.keys().size() == 7
+        && data.id is string && data.id.size() <= 128
+        && data.siswaId is string && data.siswaId.size() <= 128
+        && (data.tipe == 'MASUK' || data.tipe == 'KELUAR')
+        && data.jumlah is number && data.jumlah >= 0
+        && data.keterangan is string && data.keterangan.size() <= 500
+        && data.tanggal is string && data.tanggal.size() <= 32
+        && data.tanggalDibuat is string && data.tanggalDibuat.size() <= 64;
+    }
+
+    // Settings validation
+    function isValidSettings(data) {
+      return data.keys().hasAll(['schoolName', 'spreadsheetId'])
+        && data.keys().size() == 2
+        && data.schoolName is string && data.schoolName.size() <= 200
+        && data.spreadsheetId is string && data.spreadsheetId.size() <= 200;
+    }
+
+    // User-based rules
+    match /users/{userId} {
+      
+      // Siswa Subcollection
+      match /siswa/{siswaId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(siswaId) && isValidSiswa(incoming()) && incoming().id == siswaId;
+        allow update: if isOwner(userId) && isValidId(siswaId) && isValidSiswa(incoming()) && incoming().id == existing().id;
+        allow delete: if isOwner(userId);
+      }
+
+      // Transaksi Subcollection
+      match /transaksi/{transaksiId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(transaksiId) && isValidTransaksi(incoming()) && incoming().id == transaksiId
+          && exists(/databases/$(database)/documents/users/$(userId)/siswa/$(incoming().siswaId)); // Ensure referenced siswa exists
+        allow update: if isOwner(userId) && isValidId(transaksiId) && isValidTransaksi(incoming()) && incoming().id == existing().id;
+        allow delete: if isOwner(userId);
+      }
+
+      // Settings config
+      match /settings/config {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidSettings(incoming());
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "Siswa": {
+      "title": "Siswa",
+      "description": "Data siswa penerima manfaat tabungan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik siswa" },
+        "nisn": { "type": "string", "description": "Nomor Induk Siswa Nasional" },
+        "nama": { "type": "string", "description": "Nama lengkap siswa dalam huruf kapital" },
+        "kelas": { "type": "string", "description": "Kelas siswa" },
+        "tanggalDibuat": { "type": "string", "format": "date-time", "description": "Tanggal pembuatan data siswa" }
+      },
+      "required": ["id", "nisn", "nama", "kelas", "tanggalDibuat"]
+    },
+    "Transaksi": {
+      "title": "Transaksi",
+      "description": "Data transaksi tabungan siswa (masuk atau keluar)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik transaksi" },
+        "siswaId": { "type": "string", "description": "ID siswa yang melakukan transaksi" },
+        "tipe": { "type": "string", "enum": ["MASUK", "KELUAR"], "description": "Tipe transaksi" },
+        "jumlah": { "type": "number", "description": "Jumlah uang transaksi" },
+        "keterangan": { "type": "string", "description": "Keterangan transaksi" },
+        "tanggal": { "type": "string", "format": "date", "description": "Tanggal transaksi" },
+        "tanggalDibuat": { "type": "string", "format": "date-time", "description": "Waktu pembuatan data transaksi di sistem" }
+      },
+      "required": ["id", "siswaId", "tipe", "jumlah", "keterangan", "tanggal", "tanggalDibuat"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Pengaturan sekolah guru",
+      "type": "object",
+      "properties": {
+        "schoolName": { "type": "string", "description": "Nama sekolah guru" },
+        "spreadsheetId": { "type": "string", "description": "ID Google Sheet terhubung" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}/siswa/{siswaId}": {
+      "schema": "Siswa",
+      "description": "Koleksi data siswa untuk guru tertentu"
+    },
+    "/users/{userId}/transaksi/{transaksiId}": {
+      "schema": "Transaksi",
+      "description": "Koleksi data transaksi tabungan siswa untuk guru tertentu"
+    },
+    "/users/{userId}/settings/config": {
+      "schema": "Settings",
+      "description": "Pengaturan kustom guru"
+    }
+  }
+}

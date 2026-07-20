@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+html, body {
+  background-color: #f8fafc; /* bg-slate-50 */
+  color: #0f172a; /* text-slate-900 */
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+}
+
+html.dark, body.dark {
+  background-color: #020617; /* bg-slate-950 */
+  color: #f8fafc; /* text-slate-50 */
+}

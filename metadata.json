@@ -1,0 +1,6 @@
+{
+  "name": "Aplikasi Tabungan Siswa SMP",
+  "description": "Aplikasi pencatatan tabungan (uang masuk dan keluar) siswa SMP dengan database Google Sheets, laporan harian, mingguan, bulanan, export PDF/Excel, mode gelap, dan sinkronisasi offline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
